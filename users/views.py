@@ -6,7 +6,7 @@ from rest_framework import status
 from .utils import send_Otp
 from .models import Otp
 from rest_framework.permissions import IsAuthenticated
-from .task import test_func
+from .task import send_mail_func
 
 # Create your views here.
 
@@ -73,6 +73,6 @@ class Profile(GenericAPIView):
             'is_superuser':request.user.is_superuser
             
         }
-        test_func.delay()
+        send_mail_func.delay()
         return Response(data, status=status.HTTP_200_OK)
 

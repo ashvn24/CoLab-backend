@@ -14,7 +14,7 @@ def send_Otp(email):
     otp_code = generateOtp()
     print(otp_code)
     user = User.objects.get(email=email)
-    email_body = f"hii{user.username} thanks for signing up on CoLab please verify the account with otp{otp_code}"
+    email_body = f"hii {user.username} thanks for signing up on CoLab please verify the account with otp{otp_code}"
     from_email = settings.DEFAULT_FROM_EMAIL
     
     Otp.objects.create(user=user, code=otp_code)

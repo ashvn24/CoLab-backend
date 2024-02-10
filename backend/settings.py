@@ -35,8 +35,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'users',
     'rest_framework_simplejwt',
-    'django_celery_results'
-    'django_celery_beat'
+    'django_celery_results',
+    'django_celery_beat',
     
 ]
 
@@ -107,6 +107,37 @@ SIMPLE_JWT = {
 }
 
 
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
+ROOT_URLCONF = 'backend.urls'
+
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_HEADERS = [
+    'Content-Type',
+    'content-disposition',
+]
+CORS_ALLOWED_ORIGINS = [
+  
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'http://127.0.0.1:3000'
+]
+
+CORS_ORIGIN_WHITELIST = [
+    'http://google.com',
+    'http://localhost:8000',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:3000'
+
+]
+SECURE_CROSS_ORIGIN_OPENER_POLICY='same-origin-allow-popups'
+
+SECURE_REFERRER_POLICY = 'same-origin'
+
+
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
@@ -168,3 +199,12 @@ CELERY_RESULT_BACKEND = 'django-db'
 #celery beat
 
 CELERY_BEAT_SCHEDULER= 'django_celery_beat.scheduler:DatabseScheduler'
+
+#smpt settings
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smpt.gmail.com'
+# EMAIL_USE_TLS = True
+# EMAIL_PORT = 587
+# EMAIL_HOST_USER ="ashwinvk77@gmail.com"
+# EMAIL_HOST_PASSWORD = 'pabw ikue wqkk npai'
+# DEFAULT_FROM_EMAIL = 'Celery <ashwinvk77@gmail.com>'
