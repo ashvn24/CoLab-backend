@@ -31,6 +31,7 @@ class RegisterUser(GenericAPIView):
 class VerifyOtp(GenericAPIView):
     def post(self, request):
         otpCode = request.data.get('otp')
+        print(otpCode)
         try:
             user_code = Otp.objects.get(code=otpCode)
             user = user_code.user
