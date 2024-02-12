@@ -34,3 +34,13 @@ class AdminLoginSerializer(serializers.ModelSerializer):
             'access_token': str(user_token.get('access')),
             'refresh_token': str(user_token.get('refresh')),
         }
+        
+
+class AdminUserListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        exclude = ['groups', 'user_permissions']
+        extra_kwargs = {
+            'password':{'write_only':True}
+        }
+    
