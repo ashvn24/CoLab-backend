@@ -31,7 +31,9 @@ class AdminUserList(GenericAPIView):
         return Response(serializers.data, status= status.HTTP_200_OK)
 
     def post(self,request):
-        user_id = request.data.get('user_id')
+        print('here',request.data)
+        user_id = request.data.get('id')
+        print(user_id,'here1')
         user = User.objects.get(id=user_id)
         
         if not user:
