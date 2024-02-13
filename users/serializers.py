@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User
+from .models import *
 from django.contrib.auth import authenticate
 from rest_framework.exceptions import AuthenticationFailed
 
@@ -49,3 +49,9 @@ class LoginUserSerializer(serializers.ModelSerializer):
             'refresh_token': str(user_token.get('refresh')),
             'role': user.role
         }
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model= UserProfile
+        fields='__all__'

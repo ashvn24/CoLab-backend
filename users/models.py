@@ -38,3 +38,14 @@ class Otp(models.Model):
     
     def __str__(self):
         return f"{self.user.email}-otp"
+    
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete = models.CASCADE)
+    full_name = models.CharField(max_length = 200, blank= True)
+    profile_image = models.ImageField( upload_to="profile/",blank=True)
+    bio  = models.CharField(max_length= 300, blank= True)
+    channel_link = models.CharField(max_length = 200, blank =True)
+    
+    
+    def __str__(self):
+        return f"{self.user.username}'s profile"

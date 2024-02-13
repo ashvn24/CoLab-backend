@@ -38,6 +38,7 @@ class VerifyOtp(GenericAPIView):
             if not user.is_verified:
                 user.is_verified = True
                 user.save()
+                send_mail_func.delay()
                 return Response({
                     'message': 'account created'
                 }, status=status.HTTP_200_OK)
@@ -63,17 +64,16 @@ class LoginUser(GenericAPIView):
 
 class Profile(GenericAPIView):
     permission_classes = [IsAuthenticated]
-
     def get(self, request):
-        data = {
-            'id': request.user.id,
-            'name': request.user.username,
-            'email': request.user.email,
-            'msg': 'it works',
-            'is_staff': request.user.is_staff,
-            'is_superuser':request.user.is_superuser
-            
+        user = User.objects.get(id=request.user.id)
+        print('profile',user)
+        user_serializer = UserSerializer(user)
+        profile = UserProfile.objects.get(user=user)
+        profile_serializer = UserProfileSerializer(profile)
+        
+        response_data = {
+            'user': user_serializer.data,
+            'profile': profile_serializer.data
         }
-        send_mail_func.delay()
-        return Response(data, status=status.HTTP_200_OK)
+        return Response(response_data, status=status.HTTP_200_OK)
 
