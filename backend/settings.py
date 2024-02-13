@@ -103,7 +103,7 @@ REST_FRAMEWORK = {
 
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=20),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=10),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
@@ -185,12 +185,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
-EMAIL_HOST_USER = 'a8e1606228d505'
-EMAIL_HOST_PASSWORD = '6cbcf337a7e4f2'
-DEFAULT_FROM_EMAIL = 'ashwinvk77@gmail.com'
-EMAIL_PORT = '2525'
-EMIAL_USE_TLS=True
 
 #celery settings
 
@@ -207,10 +201,8 @@ CELERY_RESULT_BACKEND = 'django-db'
 CELERY_BEAT_SCHEDULER= 'django_celery_beat.scheduler:DatabseScheduler'
 
 #smpt settings
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smpt.gmail.com'
-# EMAIL_USE_TLS = True
-# EMAIL_PORT = 587
-# EMAIL_HOST_USER ="ashwinvk77@gmail.com"
-# EMAIL_HOST_PASSWORD = 'pabw ikue wqkk npai'
-# DEFAULT_FROM_EMAIL = 'Celery <ashwinvk77@gmail.com>'
+EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
+EMAIL_HOST_USER = 'a8e1606228d505'
+EMAIL_HOST_PASSWORD = '6cbcf337a7e4f2'
+EMAIL_PORT = '2525'
+EMAIL_USE_TLS = True
