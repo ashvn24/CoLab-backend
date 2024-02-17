@@ -96,7 +96,6 @@ class PostCreateView(generics.CreateAPIView):
     serializer_class = PostSerializer
     permission_classes = [IsAuthenticated]
     
-    print('permissioncls',permission_classes)
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
@@ -112,7 +111,8 @@ class PostCreateView(generics.CreateAPIView):
             user_id = payload['user_id']
             print(user_id)
             attachments_data = request.FILES.getlist('files')
-            post_data = request.data.copy()
+            print('attach',attachments_data)
+            post_data = request.data
             post_data.pop('files', None)
 
             serializer = self.get_serializer(data=post_data)
