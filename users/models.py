@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from .Manger import UserManager
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.parsers import MultiPartParser, FormParser
+
 # Create your models here.
 
 
@@ -49,3 +51,25 @@ class UserProfile(models.Model):
     
     def __str__(self):
         return f"{self.user.username}'s profile"
+
+    
+class Post(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    
+    title = models.CharField(max_length=100,blank= False)
+    description = models.TextField(blank=True, null=True)
+    link = models.URLField(blank=True, null=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    permission = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.title
+class PostAttachment(models.Model): 
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='attachments' )
+    files = models.FileField(upload_to= "posts/")
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    
+    def __str__(self):
+        return f'{self.post.title}"s post attachment"'
+    

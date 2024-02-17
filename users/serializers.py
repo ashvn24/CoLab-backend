@@ -55,3 +55,13 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model= UserProfile
         fields='__all__'
+        
+class PostAttachmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PostAttachment
+        fields = '__all__'
+class PostSerializer(serializers.ModelSerializer):
+    attachments = PostAttachmentSerializer(many=True, required=False)
+    class Meta:
+        model = Post
+        exclude = ['user']
