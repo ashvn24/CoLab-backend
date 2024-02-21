@@ -93,7 +93,7 @@ class Profile(generics.RetrieveAPIView):
 
 class PostCreateView(generics.CreateAPIView):
     queryset = Post.objects.all()
-    serializer_class = PostSerializer
+    serializer_class = PostsSerializer
     permission_classes = [IsAuthenticated]
     
     def perform_create(self, serializer):
@@ -109,7 +109,6 @@ class PostCreateView(generics.CreateAPIView):
             token = access_token.split(' ')[1]
             payload = jwt.decode(token, settings.SECRET_KEY , algorithms=['HS256'])
             user_id = payload['user_id']
-            print(user_id)
             attachments_data = request.FILES.getlist('files')
             print('attach',attachments_data)
             post_data = request.data
@@ -136,7 +135,7 @@ class AllPostsListView(generics.ListAPIView):
     
     def get_queryset(self):
         # Return all posts
-        return Post.objects.all()
+        return Post.objects.all().order_by('-created_at')
     
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -157,7 +156,26 @@ class GetPostDetail(generics.RetrieveAPIView):
             return Response({"error": "Post does not exist"},  
                            status=status.HTTP_404_NOT_FOUND)
             
+class GetMyPost(generics.RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = PostSerializer
+    
+    def get(self,request):
+        access_token = request.headers.get('Authorization')
+
+        if access_token is None:
+            raise AuthenticationFailed('Access token is required')
+
+        try:
+            token = access_token.split(' ')[1]
+            payload = jwt.decode(token, settings.SECRET_KEY , algorithms=['HS256'])
+            user_id = payload['user_id']
+            post =  Post.objects.filter(user=user_id).order_by("created_at")
+            serializer = self.get_serializer(post, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
             
+        except Post.DoesNotExist:
+            return Response({'message': 'No posts found'}, status=status.HTTP_404_NOT_FOUND)
             
           
 

@@ -55,9 +55,9 @@ class UserProfile(models.Model):
     
 class Post(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    
-    title = models.CharField(max_length=100,blank= False)
-    description = models.TextField(blank=True, null=True)
+    titleDesc = models.CharField(max_length=400,blank= False)
+    title = models.CharField(max_length=300,blank= False)
+    description = models.TextField( max_length=600, blank=True, null=True)
     link = models.URLField(blank=True, null=True)
     
     created_at = models.DateTimeField(auto_now_add=True)

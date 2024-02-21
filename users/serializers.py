@@ -62,8 +62,16 @@ class PostAttachmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = PostAttachment
         fields = '__all__'
+        
 class PostSerializer(serializers.ModelSerializer):
+    user = UserSerializer()  # Include the UserSerializer directly
     attachments = PostAttachmentSerializer(many=True, required=False)
     class Meta:
         model = Post
-        exclude = ['user']
+        fields = '__all__'
+        
+class PostsSerializer(serializers.ModelSerializer):
+    attachments = PostAttachmentSerializer(many=True, required=False)
+    class Meta:
+        model = Post
+        exclude =['user']
