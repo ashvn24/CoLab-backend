@@ -11,6 +11,8 @@ from .task import send_mail_func
 from rest_framework_simplejwt.authentication import JWTAuthentication
 import jwt
 from django.conf import settings
+from django.shortcuts import get_object_or_404
+
 
 
 
@@ -77,17 +79,15 @@ class Profile(generics.RetrieveAPIView):
     
 
     def get(self, request, *args, **kwargs):
-        user = request.user
-        profile = UserProfile.objects.get(user=user)
-
-        user_serializer = UserSerializer(user)
+        user_id = self.request.data.get('id')
+        if user_id:
+            profile = UserProfile.objects.get(pk=user_id)
+        else:
+            user = request.user
+            profile = UserProfile.objects.get(user=user)
         profile_serializer = UserProfileSerializer(profile)
-
-        response_data = {
-            'user': user_serializer.data,
-            'profile': profile_serializer.data
-        }
-        return Response(response_data, status=status.HTTP_200_OK)
+        response_data = profile_serializer
+        return Response(response_data.data, status=status.HTTP_200_OK)
     
 
 
@@ -141,20 +141,34 @@ class AllPostsListView(generics.ListAPIView):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
         
 class GetPostDetail(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
-    
+
     def get(self, request, *args, **kwargs):
-        post = request.data.get('post_id')
+        post_id = self.kwargs.get('id')
+
         try:
-            instance = Post.objects.prefetch_related('attachments').get(pk=post)
-            serializer = PostSerializer(instance)
-            return Response(serializer.data, status=status.HTTP_200_OK )
-        
+            post = Post.objects.prefetch_related('attachments').get(pk=post_id)
         except Post.DoesNotExist:
-            return Response({"error": "Post does not exist"},  
-                           status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Post does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        print(request.user)
+        if post.user == request.user:  # Creator of the post
+            serializer = PostSerializer(post)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        # Check if the user is an editor and if the request is accepted 
+        user= request.user
+        if EditorRequest.objects.filter(editor=user, post=post, accepted=True).exists():
+            serializer = PostSerializer(post)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            # If the user is an editor but request is not accepted, return limited details
+            serializer = PosSerializer(post)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+            
+            
             
 class GetMyPost(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
@@ -170,61 +184,118 @@ class GetMyPost(generics.RetrieveAPIView):
             token = access_token.split(' ')[1]
             payload = jwt.decode(token, settings.SECRET_KEY , algorithms=['HS256'])
             user_id = payload['user_id']
-            post =  Post.objects.filter(user=user_id).order_by("created_at")
+            post =  Post.objects.filter(user=user_id).order_by("-created_at")
             serializer = self.get_serializer(post, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
             
         except Post.DoesNotExist:
             return Response({'message': 'No posts found'}, status=status.HTTP_404_NOT_FOUND)
+        
+
+class PostUpdateView(generics.UpdateAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostsSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_update(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def update(self, request, *args, **kwargs):
+        access_token = request.headers.get('Authorization')
+
+        if access_token is None:
+            raise AuthenticationFailed('Access token is required')
+
+        try:
+            token = access_token.split(' ')[1]
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+            user_id = payload['user_id']
+            attachments_data = request.FILES  # Create a mutable copy of request.FILES
+            post_data = request.data.copy()  # Create a mutable copy of request.data
+            post_data.pop('files', None)
+
+            instance = self.get_object()  # Retrieve the existing post object
+            serializer = self.get_serializer(instance, data=post_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save(user_id=user_id)  # Save the updated post data
+
+            # Update attachments
+            instance.attachments.all().delete()  # Delete existing attachments
+
+            for attachment_data in attachments_data.getlist('files'):
+                PostAttachment.objects.create(files=attachment_data, user_id=user_id, post=instance)
+
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed('Access token has expired')
+        except jwt.InvalidTokenError:
+            raise AuthenticationFailed('Invalid access token')
+        
+class UserProfileUpdateAPIView(generics.UpdateAPIView):
+    queryset = UserProfile.objects.all()
+    serializer_class = UserProfileSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'pk'  # Change this to the appropriate field name used for lookup (e.g., 'user_id')
+
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)
             
-          
-
-# to get all post along with their respected attachments
-
-# class AllPostsListView(generics.ListAPIView):
-#     serializer_class = PostSerializer
-#     authentication_classes = [JWTAuthentication]
-#     permission_classes = [IsAuthenticated]
-
-#     def get_queryset(self):
-#         return Post.objects.all()
-
-#     def list(self, request, *args, **kwargs):
-#         queryset = self.get_queryset()
-#         serializer = self.get_serializer(queryset, many=True)
-#         data = serializer.data
-
-#         for post_data in data:
-#             post_id = post_data['id']
-#             post_attachments = PostAttachment.objects.filter(post_id=post_id)
-#             attachment_serializer = PostAttachmentSerializer(post_attachments, many=True)
-#             post_data['attachments'] = attachment_serializer.data
-
-#         return Response(data)
 
 
+class EditorRequestCreateAPIView(generics.CreateAPIView):
+    queryset = EditorRequest.objects.all()
+    serializer_class = EditorRequestSerializer
 
- # create post without accessing user from jwt   
+    def create(self, request, *args, **kwargs):
+        editor_id = request.data.get('editor')
+        post_id = request.data.get('post')
+
+        editor = get_object_or_404(User, pk=editor_id)
+        post = get_object_or_404(Post, pk=post_id)
+
+        # Create the editor request instance
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(editor=editor, post=post)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        # Return a response indicating that the request has been sent to the post creator
+
+class CreatorEditorRequestsAPIView(generics.ListAPIView):
+    serializer_class = EditRequestSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Filter the editor requests related to the posts created by the current user
+        return EditorRequest.objects.filter(post__user=self.request.user).order_by("-created_at")
     
-# class PostCreateView(generics.CreateAPIView):
-#     queryset = Post.objects.all()
-#     serializer_class = PostSerializer
-#     permission_classes = [IsAuthenticated]
+class AcceptEditorRequestAPIView(generics.RetrieveUpdateAPIView):
+    queryset = EditorRequest.objects.all()
+    serializer_class = EditorRequestSerializer
 
-#     def perform_create(self, serializer):
-#         serializer.save(user=self.request.user)
+    def update(self, request, *args, **kwargs):
+        editor_request_id = request.data.get('id')
+        print(editor_request_id)
 
-#     def create(self, request, *args, **kwargs):
-#         attachments_data = request.FILES.getlist('files')
-#         post_data = request.data.copy()
-#         post_data.pop('files', None)
+        try:
+                # Retrieve the EditorRequest object
+            instance = EditorRequest.objects.get(id=editor_request_id)
 
-#         serializer = self.get_serializer(data=post_data)
-#         serializer.is_valid(raise_exception=True)
-#         post_instance = serializer.save()
+                # Update the 'accepted' field to True
+            instance.accepted = True
+            instance.save()
 
-#         for attachment_data in attachments_data:
-#             PostAttachment.objects.create(files=attachment_data, user=request.user, post=post_instance)
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except EditorRequest.DoesNotExist:
+            return Response({"message": "EditorRequest does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        
+class AcceptedPostsListView(generics.ListAPIView):
+    serializer_class = EditRequestSerializer
+    permission_classes = [IsAuthenticated]
 
-#         headers = self.get_success_headers(serializer.data)
-#         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+    def get_queryset(self):
+        # Filter the editor requests related to the posts created by the current user
+        return EditorRequest.objects.filter(editor=self.request.user, accepted=True)

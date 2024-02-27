@@ -47,7 +47,9 @@ class UserProfile(models.Model):
     profile_image = models.ImageField( upload_to="profile/",blank=True)
     bio  = models.CharField(max_length= 300, blank= True)
     channel_link = models.CharField(max_length = 200, blank =True)
-    
+    instagram = models.CharField(max_length=150, null= True, blank=True)
+    facebook = models.CharField(max_length= 150, null= True, blank=True)
+    phone = models.CharField(max_length = 15, blank=True, null=True)
     
     def __str__(self):
         return f"{self.user.username}'s profile"
@@ -55,11 +57,10 @@ class UserProfile(models.Model):
     
 class Post(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    titleDesc = models.CharField(max_length=400,blank= False)
+    titleDesc = models.CharField(max_length=400,blank= False,null=True)
     title = models.CharField(max_length=300,blank= False)
     description = models.TextField( max_length=600, blank=True, null=True)
     link = models.URLField(blank=True, null=True)
-    
     created_at = models.DateTimeField(auto_now_add=True)
     permission = models.BooleanField(default=False)
 
@@ -72,4 +73,13 @@ class PostAttachment(models.Model):
     
     def __str__(self):
         return f'{self.post.title}"s post attachment"'
+    
+class EditorRequest(models.Model):
+    editor = models.ForeignKey(User, related_name='editor_requests', on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, related_name='editor_requests', on_delete=models.CASCADE)
+    accepted = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f'{self.editor.username}"s Request"'
     

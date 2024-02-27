@@ -7,7 +7,7 @@ from rest_framework.exceptions import AuthenticationFailed
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['email','password','role','username','date_joined']
+        fields = ['id','email','password','role','username','date_joined']
         extra_kwargs = {
             'password': {'write_only': True}
         }
@@ -29,10 +29,11 @@ class LoginUserSerializer(serializers.ModelSerializer):
     refresh_token = serializers.CharField(max_length=255, read_only=True)
     role = serializers.CharField(max_length=100, read_only=True)
     username =serializers.CharField(max_length=100, read_only= True)
+    user = UserSerializer(read_only=True)
 
     class Meta:
         model = User
-        fields = ['email', 'password', 'access_token', 'refresh_token', 'role','username']
+        fields = ['email', 'password', 'access_token', 'refresh_token', 'role','username','user']
 
     def validate(self, attrs):
         email = attrs.get('email')
@@ -53,7 +54,7 @@ class LoginUserSerializer(serializers.ModelSerializer):
         }
 
 class UserProfileSerializer(serializers.ModelSerializer):
-    
+    user = UserSerializer() 
     class Meta:
         model= UserProfile
         fields='__all__'
@@ -75,3 +76,24 @@ class PostsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         exclude =['user']
+class PosSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+    class Meta:
+        model = Post
+        fields = '__all__'
+        
+        
+class EditorRequestSerializer(serializers.ModelSerializer):
+    # editor = UserSerializer()
+    # post = PostSerializer()
+
+    class Meta:
+        model = EditorRequest
+        fields = ['id', 'editor', 'post', 'accepted']
+class EditRequestSerializer(serializers.ModelSerializer):
+    editor = UserSerializer()
+    post = PostSerializer()
+
+    class Meta:
+        model = EditorRequest
+        fields = ['id', 'editor', 'post', 'accepted']
