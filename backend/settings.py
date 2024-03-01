@@ -187,7 +187,14 @@ CELERY_RESULT_BACKEND = 'django-db'
 
 #celery beat
 
-CELERY_BEAT_SCHEDULER= 'django_celery_beat.scheduler:DatabseScheduler'
+# CELERY_BEAT_SCHEDULER= 'django_celery_beat.scheduler:DatabseScheduler'
+
+CELERY_BEAT_SCHEDULE = {
+    'delete_old_accepted_requests': {
+        'task': 'users.task.delete_old_accepted_requests',
+        'schedule': timedelta(days=1),  # Run the task every day
+    },
+}
 
 #smpt settings
 EMAIL_HOST = 'sandbox.smtp.mailtrap.io'

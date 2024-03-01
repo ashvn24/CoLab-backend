@@ -3,6 +3,9 @@ import os
 
 from celery import Celery
 from django.conf import settings
+from celery.schedules import crontab
+from datetime import timedelta
+
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE','backend.settings')
 
@@ -15,9 +18,12 @@ app.config_from_object(settings,namespace='CELERY')
 
 #beat settings
 
-app.conf.beat_schedule = {
-    
-}
+# app.conf.beat_schedule = {
+#     'delete-old-accepted-requests': {
+#         'task': 'users.task.delete_old_accepted_requests',
+#         'schedule': timedelta(seconds=5),  # Run the task every 5 seconds
+#     },
+# }
 
 
 app.autodiscover_tasks()

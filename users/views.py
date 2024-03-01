@@ -7,7 +7,7 @@ from rest_framework import generics, permissions, status
 from .utils import send_Otp
 from .models import Otp
 from rest_framework.permissions import IsAuthenticated
-from .task import send_mail_func
+from .task import send_mail_func, send_Accept_mail
 from rest_framework_simplejwt.authentication import JWTAuthentication
 import jwt
 from django.conf import settings
@@ -220,10 +220,11 @@ class PostUpdateView(generics.UpdateAPIView):
             serializer.save(user_id=user_id)  # Save the updated post data
 
             # Update attachments
-            instance.attachments.all().delete()  # Delete existing attachments
+            if attachments_data:
+                instance.attachments.all().delete()  # Delete existing attachments
 
-            for attachment_data in attachments_data.getlist('files'):
-                PostAttachment.objects.create(files=attachment_data, user_id=user_id, post=instance)
+                for attachment_data in attachments_data.getlist('files'):
+                    PostAttachment.objects.create(files=attachment_data, user_id=user_id, post=instance)
 
             return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -286,6 +287,7 @@ class AcceptEditorRequestAPIView(generics.RetrieveUpdateAPIView):
                 # Update the 'accepted' field to True
             instance.accepted = True
             instance.save()
+            send_Accept_mail.delay()
 
             serializer = self.get_serializer(instance)
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -299,3 +301,71 @@ class AcceptedPostsListView(generics.ListAPIView):
     def get_queryset(self):
         # Filter the editor requests related to the posts created by the current user
         return EditorRequest.objects.filter(editor=self.request.user, accepted=True)
+    
+class RejectRequestView(generics.DestroyAPIView):
+    queryset = EditorRequest.objects.all()
+    serializer_class = EditorRequestSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_object(self):
+        req_id = self.request.data.get('id')
+        
+        if req_id is None:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        try:
+            instance = EditorRequest.objects.get(id=req_id)
+            return instance
+        except EditorRequest.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if isinstance(instance, Response):
+            return instance  # Return the response if it's not an instance
+        
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+        
+    
+    
+class PostDeleteAPIView(generics.DestroyAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    permission_classes = [IsAuthenticated]  # You can adjust the permissions as needed
+
+    def get_object(self):
+        post_id = self.request.data.get('id')
+        print(post_id)
+        if post_id is None:
+            return Response({"message":"Post id not provided in request data"},status=status.HTTP_404_NOT_FOUND)
+        
+        try:
+            post = Post.objects.get(id=post_id, user=self.request.user)
+            self.check_object_permissions(self.request, post)
+            return post
+        except Post.DoesNotExist:
+            return Response("Post does not exist")
+
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_200_OK)
+    
+class PostDelete(generics.DestroyAPIView):
+    queryset = Post.objects.all()
+    permission_classes = [IsAuthenticated]
+    serializer_class = PostSerializer
+    
+    def delete(self,request, *args, **kwargs):
+        post_id = self.kwargs.get('id')
+        print(post_id)
+        if  not post_id :
+            return Response("ERROR-NOID",status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            post = Post.objects.get(id=post_id, user=self.request.user)
+        except  Post.DoesNotExist:
+             return Response("POST_DOES_NOT_EXIST", status=status.HTTP_404_NOT_FOUND)
+        
+        self.perform_destroy(post)
+        return Response("Deleted",status=status.HTTP_200_OK)
