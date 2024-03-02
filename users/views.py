@@ -221,8 +221,6 @@ class PostUpdateView(generics.UpdateAPIView):
 
             # Update attachments
             if attachments_data:
-                instance.attachments.all().delete()  # Delete existing attachments
-
                 for attachment_data in attachments_data.getlist('files'):
                     PostAttachment.objects.create(files=attachment_data, user_id=user_id, post=instance)
 
@@ -249,10 +247,14 @@ class EditorRequestCreateAPIView(generics.CreateAPIView):
     serializer_class = EditorRequestSerializer
 
     def create(self, request, *args, **kwargs):
-        editor_id = request.data.get('editor')
+        access_token = request.headers.get('Authorization')
+        token = access_token.split(' ')[1]
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        user_id = payload['user_id']
+        # editor_id = request.data.get('editor')
         post_id = request.data.get('post')
 
-        editor = get_object_or_404(User, pk=editor_id)
+        editor = get_object_or_404(User, pk=user_id)
         post = get_object_or_404(Post, pk=post_id)
 
         # Create the editor request instance

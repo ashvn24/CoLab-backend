@@ -1,16 +1,18 @@
-# import environ
+import environ
 from datetime import timedelta
 import os
 from pathlib import Path
-# env = environ.Env(
-#     DEBUG=(bool, False)
-# )
+
+env = environ.Env(
+    DEBUG=(bool, False)
+)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# environ.Env.read_env(BASE_DIR / '.env') 
+environ.Env.read_env(BASE_DIR / '.env')
+ 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
@@ -32,6 +34,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_extensions',
     'corsheaders',
     'rest_framework',
     'users',
@@ -202,3 +205,12 @@ EMAIL_HOST_USER = 'a8e1606228d505'
 EMAIL_HOST_PASSWORD = '6cbcf337a7e4f2'
 EMAIL_PORT = '2525'
 EMAIL_USE_TLS = True
+
+
+DEFAULT_FILE_STORAGE = "storages.backends.s3.S3Storage"
+
+AWS_S3_ACCESS_KEY_ID="AKIA6GBMG5HCKF3P2B5Y"
+AWS_S3_SECRET_ACCESS_KEY="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"
+AWS_STORAGE_BUCKET_NAME="colab-django-s3"
+AWS_S3_REGION_NAME="ap-south-1"
+

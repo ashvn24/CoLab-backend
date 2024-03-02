@@ -86,12 +86,10 @@ class PosSerializer(serializers.ModelSerializer):
         
         
 class EditorRequestSerializer(serializers.ModelSerializer):
-    # editor = UserSerializer()
-    # post = PostSerializer()
-
     class Meta:
         model = EditorRequest
-        fields = ['id', 'editor', 'post', 'accepted']
+        fields = ['id', 'post', 'accepted']
+        
 class EditRequestSerializer(serializers.ModelSerializer):
     editor = UserSerializer()
     post = PostSerializer()
