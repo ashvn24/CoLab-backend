@@ -97,3 +97,6 @@ class EditRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = EditorRequest
         fields = ['id', 'editor', 'post', 'accepted']
+        
+    def get_req_count(self,obj):
+        return len(obj.all(accepted=False))

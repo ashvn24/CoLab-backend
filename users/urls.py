@@ -18,7 +18,7 @@ urlpatterns = [
     path('viewrequest/',CreatorEditorRequestsAPIView.as_view(),name='viewrequest'),
     path('acceptrequest/',AcceptEditorRequestAPIView.as_view(),name='acceptrequest'),
     path('rejectRqst/',RejectRequestView.as_view(),name='rejectReqst'),
-    path('mywork/',AcceptedPostsListView.as_view(),name='mywork'),
+    path('mywork/<int:id>',AcceptedPostsListView.as_view(),name='mywork'),
     path('postDelete/<int:id>',PostDelete.as_view(),name = 'postDelete'),
 ]
 
