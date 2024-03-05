@@ -1,8 +1,9 @@
 from rest_framework import serializers
 from .models import *
+from .social import Google, register_social_user
 from django.contrib.auth import authenticate
 from rest_framework.exceptions import AuthenticationFailed
-
+from django.conf import settings
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -100,3 +101,17 @@ class EditRequestSerializer(serializers.ModelSerializer):
         
     def get_req_count(self,obj):
         return len(obj.all(accepted=False))
+    
+    
+class GoogleSignInSerializer(serializers.Serializer):
+    access_token=serializers.CharField(min_length=200)
+    
+    def validate_access_token(self, access_token):
+        google_user_data = Google.validate(access_token)
+        print('google--',google_user_data)
+        email = google_user_data['email']
+        username = google_user_data['given_name']
+        provider = "google"
+        
+        return register_social_user(provider, email, username)
+    

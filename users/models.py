@@ -6,7 +6,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 
 # Create your models here.
 
-
+AUTH_PROVIDERS = {'email':'email', 'google': 'google'}
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(max_length=255, unique=True)
     username = models.CharField(max_length=100)
@@ -16,6 +16,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_verified = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     date_joined = models.DateTimeField(auto_now_add =True)
+    auth_provider = models.CharField(max_length=100,default=AUTH_PROVIDERS.get('email'))
     
     USERNAME_FIELD="email"
     
