@@ -13,3 +13,8 @@ class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
         fields = ['id', 'chat_room', 'user', 'content','timestamp']
+        
+class SignalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Signal
+        fields = ['id', 'sender', 'receiver', 'message', 'created_at']

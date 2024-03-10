@@ -160,8 +160,24 @@ class GetPostDetail(generics.RetrieveAPIView):
         # Check if the user is an editor and if the request is accepted
         user = request.user
         if EditorRequest.objects.filter(editor=user, post=post, accepted=True).exists():
+            editor_request = EditorRequest.objects.get(editor=user, post=post, accepted=True)
             serializer = PostSerializer(post)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            editor_request_serializer = EditorRequestSerializer(editor_request)
+            response_data = {
+                'post': serializer.data,
+                'editor_request': editor_request_serializer.data
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
+        
+        elif EditorRequest.objects.filter(editor=user, post=post, accepted=False).exists():
+            editor_request = EditorRequest.objects.get(editor=user, post=post, accepted=False)
+            post_serializer = PosSerializer(post)
+            editor_request_serializer = EditorRequestSerializer(editor_request)  # You need to define the EditorRequestSerializer
+            response_data = {
+                'post': post_serializer.data,
+                'editor_request': editor_request_serializer.data
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
         else:
             # If the user is an editor but request is not accepted, return limited details
             serializer = PosSerializer(post)

@@ -1,11 +1,11 @@
 from rest_framework.exceptions import NotFound
 from django.shortcuts import render
-from rest_framework import generics
+from rest_framework import generics,viewsets
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
-from .models import ChatRoom, Message
+from .models import ChatRoom, Message,Signal
 
-from .serializers import MessageSerializer
+from .serializers import MessageSerializer, SignalSerializer
 # Create your views here.
 
 
@@ -29,3 +29,7 @@ class MessageListView(generics.ListAPIView):
             return Message.objects.filter(chat_room__in=chat_room).order_by('-timestamp') 
         except ChatRoom.DoesNotExist:  
             return Message.objects.none()
+
+class SignalViewSet(viewsets.ModelViewSet):
+    queryset = Signal.objects.all()
+    serializer_class = SignalSerializer

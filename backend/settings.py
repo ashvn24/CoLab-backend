@@ -45,7 +45,8 @@ INSTALLED_APPS = [
     'django_celery_beat',
     'Admin',
     'chat',
-    
+    'youtubeData',
+    'Notification'
     
 ]
 

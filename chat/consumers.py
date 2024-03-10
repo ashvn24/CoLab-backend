@@ -77,3 +77,36 @@ class  ChatConsumer(AsyncWebsocketConsumer):
         message = event['message']
         message_obj = await self.get_message_object(message)
         await self.send(text_data=json.dumps(message_obj))
+        
+        
+        #video call consumer
+class CallConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        # Leave room group
+        pass
+
+    # Receive message from WebSocket
+    async def receive(self, text_data):
+        data = json.loads(text_data)
+        message_type = data.get('type')
+        if message_type == 'offer' or message_type == 'answer' or message_type == 'iceCandidate':
+            # Broadcast message to room group
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'forward_message',
+                    'message': data
+                }
+            )
+
+    # Receive message from room group
+    async def forward_message(self, event):
+        message = event['message']
+
+        # Send message to WebSocket
+        await self.send(text_data=json.dumps({
+            'message': message
+        }))
