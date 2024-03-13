@@ -24,6 +24,7 @@ urlpatterns = [
     path('api/',include('users.urls')),
     path('api/admin/',include('Admin.urls')),
     path('api/chat/',include('chat.urls')),
-    path('yt/',include('youtubeData.urls'))
+    path('api/yt/',include('youtubeData.urls')),
+    path('api/not/',include('Notification.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

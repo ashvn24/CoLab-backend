@@ -46,7 +46,7 @@ INSTALLED_APPS = [
     'Admin',
     'chat',
     'youtubeData',
-    'Notification'
+    'Notification', 
     
 ]
 
@@ -232,3 +232,5 @@ AWS_S3_REGION_NAME="ap-south-1"
 GOOGLE_CLIENT_ID = "992019703198-773u0jasljbf9eao5n8qf5903uquokmp.apps.googleusercontent.com"
 GOOGLE_CLIENT_SECRET = "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"
 SOCIAL_AUTH_PASSWORD = 'UAEOSNZNCBEYRJSRTFVX'
+
+CLIENT_SECRET_FILE_PATH = os.path.join(BASE_DIR, 'Credential', 'client_secrets.json')
