@@ -1,4 +1,6 @@
 from rest_framework import serializers
+
+from users.s3 import store_video_in_s3
 from .models import *
 from .social import Google, register_social_user
 from django.contrib.auth import authenticate
@@ -114,4 +116,23 @@ class GoogleSignInSerializer(serializers.Serializer):
         provider = "google"
         
         return register_social_user(provider, email, username)
+    
+
+class SubmitWorkSerializer(serializers.ModelSerializer):
+    vidkey = serializers.CharField(read_only=True)
+    class Meta:
+        model = SubmitWork
+        fields = ['editor', 'creator', 'vidkey', 'desc', 'Quatation']
+
+    def create(self, validated_data):
+        # Retrieve the uploaded file
+        video_file = self.context['request'].data.get('video_file')
+        
+        # Store the video file in S3 bucket and get its key
+        vid_key = store_video_in_s3(video_file)
+
+        # Update the validated data with the generated vid_key
+        validated_data['vidkey'] = vid_key
+        
+        return SubmitWork.objects.create(**validated_data)
     

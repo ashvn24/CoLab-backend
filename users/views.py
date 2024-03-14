@@ -1,5 +1,8 @@
+import base64
 from django.shortcuts import render
 from rest_framework.generics import GenericAPIView
+
+from users.s3 import download_video_from_s3
 from .serializers import *
 from rest_framework.response import Response
 from rest_framework.exceptions import AuthenticationFailed
@@ -429,4 +432,32 @@ class GoogleSignInView(GenericAPIView):
         serializer.is_valid(raise_exception=True)
         # data = ((serializer.validated_data)['access_token'])
         return Response(serializer.validated_data, status = status.HTTP_200_OK)
+
+class SubmitWorkCreateView(generics.CreateAPIView):
+    queryset = SubmitWork.objects.all()
+    serializer_class = SubmitWorkSerializer
+    
+
+class SubmitWorkRetrieveView(generics.RetrieveAPIView):
+    queryset = SubmitWork.objects.all()
+    serializer_class = SubmitWorkSerializer
+    lookup_field = 'id'
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        
+        # Retrieve the vidkey (S3 key) from the instance
+        vid_key = instance.vidkey
+
+        # Download the video file from S3 bucket
+        video_file = download_video_from_s3(vid_key)
+
+        video_file_base64 = base64.b64encode(video_file).decode('utf-8')
+
+        # Serialize the instance along with the base64 encoded video file
+        serializer = self.get_serializer(instance)
+        data = serializer.data
+        data['video_file'] = video_file_base64
+
+        return Response(data)
         

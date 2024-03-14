@@ -241,7 +241,7 @@ class ChannelVideosView(APIView):
 #             if video_id:
 #                 os.remove("./owner_credentials.json")
 
-#             return Response (video_id, stattus=status.HTTP_200_OK)
+#             return Response (video_id, status=status.HTTP_200_OK)
 
 #         except Exception as e:
 #             print(f"Error uploading video: {e}")
@@ -253,14 +253,19 @@ class ChannelVideosView(APIView):
 class VideoUploadView(APIView):
     def post(self, request, *args, **kwargs):
         
-        # Upload video to YouTube
-        video_id = self.upload_to_youtube(request.data)
+        try:
+            # Upload video to YouTube
+            video_id = self.upload_to_youtube(request.data)
 
-        if video_id:
-            return Response({'video_id': video_id}, status=status.HTTP_201_CREATED)
-        else:
-            return Response({'error': 'Failed to upload video'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+            if video_id:
+                print('IDD', video_id)
+                return Response({'video_id': video_id}, status=status.HTTP_201_CREATED)
+            else:
+                return Response({'error': 'Failed to upload video'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Exception as e:
+            print(f"Error: {e}")
+            return Response({'error': 'Internal server error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
     def upload_to_youtube(self, video_data):
          # Get authenticated Youtube service
         try:
@@ -307,11 +312,12 @@ class VideoUploadView(APIView):
 
             # Get video ID
             video_id = videos_insert_response['id']
-
+            print('id',video_id)
+            # Close the media file upload object
+            media_file_upload.stream().close()
             if video_id:
                 os.remove("./owner_credentials.json")
-
-            return Response (video_id, stattus=status.HTTP_200_OK)
+                return video_id
 
         except Exception as e:
             print(f"Error uploading video: {e}")

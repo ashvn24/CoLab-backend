@@ -84,5 +84,15 @@ class EditorRequest(models.Model):
     def __str__(self):
         return f'{self.editor.username}"s Request"'
     
+class SubmitWork(models.Model):
+    editor = models.ForeignKey(User, related_name='sender', on_delete=models.CASCADE)
+    creator = models.ForeignKey(User, related_name='reciever', on_delete=models.CASCADE)
+    vidkey = models.CharField(max_length=200)
+    desc = models.TextField(max_length=400,blank=True, null=True)
+    Quatation = models.IntegerField()
+    
+    def __str__(self):
+        return f'{self.editor.username}"s request to {self.creator.username}'
+    
 
     

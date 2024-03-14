@@ -22,5 +22,7 @@ urlpatterns = [
     path('mywork/<int:id>',AcceptedPostsListView.as_view(),name='mywork'),
     path('mywork/',AcceptedPostsListView.as_view(),name='mywork'),
     path('postDelete/<int:id>',PostDelete.as_view(),name = 'postDelete'),
+    path('submit-work/', SubmitWorkCreateView.as_view(), name='submit-work'),
+    path('get-work/<int:id>',SubmitWorkRetrieveView.as_view(), name='get_work'),
 ]
 

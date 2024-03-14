@@ -2,7 +2,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
 from .models import Notification
-from users.models import EditorRequest
+from users.models import EditorRequest,SubmitWork
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from django.core.serializers import serialize
@@ -50,5 +50,28 @@ def create_editor_request_accepted_notification(sender, instance, **kwargs):
                     'post': serialized_instance,
                 },
                 'recipient_user_id': editor.id
+            }
+        )
+
+@receiver(post_save,sender=SubmitWork)
+def  submitwork_created(sender, instance, created, **kwargs):
+    if created:
+        reciever = instance.creator
+        message = f'{instance.editor.username} has submitted a request for approval'
+        Notification.objects.create(user=reciever, message=message, timestamp=timezone.now(), work=instance)
+        
+        channel_layer = get_channel_layer()
+        serialized_instance = serialize('json', [instance])
+        async_to_sync(channel_layer.group_send)(
+            'notifications_group',
+            {
+                'type': 'send_notification',
+                'notification': {
+                    'id': instance.id,
+                    'message': message,
+                    'timestamp': timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
+                    'post': serialized_instance,
+                },
+                'recipient_user_id': reciever.id
             }
         )
