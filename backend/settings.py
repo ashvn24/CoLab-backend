@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'chat',
     'youtubeData',
     'Notification', 
+    'payment',
     
 ]
 
@@ -234,3 +235,8 @@ GOOGLE_CLIENT_SECRET = "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"
 SOCIAL_AUTH_PASSWORD = 'UAEOSNZNCBEYRJSRTFVX'
 
 CLIENT_SECRET_FILE_PATH = os.path.join(BASE_DIR, 'Credential', 'client_secrets.json')
+
+#razor pay details
+
+RAZORPAY_KEYID = 'rzp_test_fZ9GHf3LBOHj6X'
+RAZORPAY_KEY_SECRET = 'iK5Yl9AY3GzvRaTrpLl3AbNZ'

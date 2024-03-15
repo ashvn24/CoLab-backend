@@ -284,7 +284,8 @@ class VideoUploadView(APIView):
                             region_name=settings.AWS_S3_REGION_NAME)
             
             # Get the video file from S3
-            video_file_key = 'posts/Untitled_video_-_Made_with_Clipchamp_2.mp4'  # Key of the video file in S3 bucket
+            video_file_key = video_data.get('vid_key')  # Key of the video file in S3 bucket
+            print('file key-------',video_file_key)
             video_temp_path = os.path.join(BASE_DIR, 'youtubeData', 'temp', 'video.mp4')  # Temporary path to store the downloaded video file
             s3.download_file(settings.AWS_STORAGE_BUCKET_NAME, video_file_key, video_temp_path)
             
