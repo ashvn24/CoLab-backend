@@ -288,13 +288,12 @@ class EditorRequestCreateAPIView(generics.CreateAPIView):
         # Return a response indicating that the request has been sent to the post creator
 
 
-class CreatorEditorRequestsAPIView(generics.ListAPIView):
+class CreatorEditorRequestsAPIView(generics.RetrieveAPIView):
+    queryset =EditorRequest.objects.all()
     serializer_class = EditRequestSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
-        # Filter the editor requests related to the posts created by the current user
-        return EditorRequest.objects.filter(post__user=self.request.user).order_by("-created_at")
+    
 
 
 class AcceptEditorRequestAPIView(generics.RetrieveUpdateAPIView):
