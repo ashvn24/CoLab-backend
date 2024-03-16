@@ -1,5 +1,6 @@
+import uuid
 from celery import shared_task
-from .models import User
+from .models import  User
 from django.core.mail import EmailMessage
 from django.conf import settings
 from datetime import timedelta
@@ -55,3 +56,5 @@ def delete_old_accepted_requests():
 
     # Delete the filtered instances
     old_accepted_requests.delete()
+
+

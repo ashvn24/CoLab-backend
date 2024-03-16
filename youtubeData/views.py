@@ -8,6 +8,7 @@ import os
 from googleapiclient.http import MediaFileUpload
 from io import BytesIO
 from backend.settings import BASE_DIR
+from youtubeData.task import upload_to_youtube
 from .youtube_utils import get_authenticated_service
 import boto3
 from django.conf import settings
@@ -17,17 +18,19 @@ import time
 
 # Create your views here.
 
-API_KEY = 'AIzaSyDsR1SBOiHGdHiUg1rz2VKiakpsGH9OE-U'   
-# API_KEY = 'AIzaSyARxrS95japYaJM1IOiK9F8RgEE00DzI_Y'   
-#API_KEY = 'AIzaSyBFH7YLCVwTf0j3CZSBa9OfAxslBLllksA'
-#<<<<<<<<<<<<<<<<<<<<<<<--------------------------Channel Details---------------------------->>>>>>>>>>>>>>>>>>>>>>>
+API_KEY = 'AIzaSyDsR1SBOiHGdHiUg1rz2VKiakpsGH9OE-U'
+# API_KEY = 'AIzaSyARxrS95japYaJM1IOiK9F8RgEE00DzI_Y'
+# API_KEY = 'AIzaSyBFH7YLCVwTf0j3CZSBa9OfAxslBLllksA'
+# <<<<<<<<<<<<<<<<<<<<<<<--------------------------Channel Details---------------------------->>>>>>>>>>>>>>>>>>>>>>>
+
+
 class GetAnalytics(APIView):
     def get(self, request):
         # Your YouTube Data API key
         api_key = API_KEY
 
         # Channel name of the YouTube channel you want to retrieve details for
-        channel_name = self.request.query_params.get('channel_name',None)
+        channel_name = self.request.query_params.get('channel_name', None)
         if not channel_name:
             return Response("Please provide a channel_name parameter in the request.", status=status.HTTP_400_BAD_REQUEST)
 
@@ -62,7 +65,8 @@ class GetAnalytics(APIView):
                     subscriber_count = channel_stats.get('subscriberCount', 0)
                     video_count = channel_stats.get('videoCount', 0)
                     view_count = channel_stats.get('viewCount', 0)
-                    profile_image_url = channel_snippet.get('thumbnails', {}).get('default', {}).get('url', '')
+                    profile_image_url = channel_snippet.get(
+                        'thumbnails', {}).get('default', {}).get('url', '')
 
                     # Construct the response data
                     response_data = {
@@ -81,12 +85,11 @@ class GetAnalytics(APIView):
         except Exception as e:
             return Response({'error': str(e)}, status=500)
 
-        
 
-#<<<<<<<<<<<<<<<<<<<<<<<<<<<<-----------------Channel videos details---------------->>>>>>>>>>>>>>>>>>>>>>>>>
+# <<<<<<<<<<<<<<<<<<<<<<<<<<<<-----------------Channel videos details---------------->>>>>>>>>>>>>>>>>>>>>>>>>
 class ChannelVideosView(APIView):
     def get(self, request, format=None):
-        channel_name = self.request.query_params.get('channel_name',None)
+        channel_name = self.request.query_params.get('channel_name', None)
         if not channel_name:
             return Response("Please provide a channel_name parameter in the request.", status=status.HTTP_400_BAD_REQUEST)
 
@@ -104,10 +107,10 @@ class ChannelVideosView(APIView):
                     "video_id": video_id,
                     "like_count": like_count,
                     "comment_count": comment_count,
-                    "view_count":view_count
-                    
+                    "view_count": view_count
+
                 })
-            return Response(data,status=status.HTTP_200_OK)
+            return Response(data, status=status.HTTP_200_OK)
         else:
             return Response("No videos found for the given channel name.", status=status.HTTP_404_NOT_FOUND)
 
@@ -177,7 +180,7 @@ class ChannelVideosView(APIView):
                     )
                     comments_response = comments_request.execute()
                     total_comments += comments_response['pageInfo']['totalResults']
-                    
+
                     next_page_token = comments_response.get('nextPageToken')
                     if not next_page_token:
                         break
@@ -191,204 +194,24 @@ class ChannelVideosView(APIView):
             return videos
 
         except HttpError as e:
-            print("An HTTP error %d occurred:\n%s" % (e.resp.status, e.content))
+            print("An HTTP error %d occurred:\n%s" %
+                  (e.resp.status, e.content))
             return None
 
-#<<<<<<<<<<<<<<<<---------------------------- Upload video directly------------------------------>>>>>>>>>>>>>>>>>>>>
 
 
+        # <<<<<<<<<<<<<<<<<------------------------------  S3 UPLOAD  ------------------------>>>>>>>>>>>>>>>>>>
 
-# class VideoUploadView(APIView):
-#     def post(self, request, *args, **kwargs):
-        
-#         # Upload video to YouTube
-#         video_id = self.upload_to_youtube(request.data)
-
-#         if video_id:
-#             return Response({'video_id': video_id}, status=status.HTTP_201_CREATED)
-#         else:
-#             return Response({'error': 'Failed to upload video'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-#     def upload_to_youtube(self, video_data):
-#         youtube = get_authenticated_service("./owner_credentials.json")  # Use owner's credentials
-
-#         request_body = {
-#             'snippet': {
-#                 'title': video_data.get('title'),
-#                 'description': video_data.get('description'),
-#                 'tags': video_data.get('tags')
-#             },
-#             'status': {
-#                 'privacyStatus':'public',
-#             },
-#         }
-
-#         # Get the temporary file path
-#         video_file = video_data.get('video_file')
-#         video_path = video_file.temporary_file_path()
-
-#         media_file_upload = MediaFileUpload(video_path, chunksize=-1, resumable=True)
-
-#         try:
-#             videos_insert_response = youtube.videos().insert(
-#                 part='snippet,status',
-#                 body=request_body,
-#                 media_body=media_file_upload
-#             ).execute()
-
-#             video_id = videos_insert_response['id']
-            
-#             if video_id:
-#                 os.remove("./owner_credentials.json")
-
-#             return Response (video_id, status=status.HTTP_200_OK)
-
-#         except Exception as e:
-#             print(f"Error uploading video: {e}")
-#             return None
-        
-        
-        #<<<<<<<<<<<<<<<<<------------------------------  S3 UPLOAD  ------------------------>>>>>>>>>>>>>>>>>>
-        
 class VideoUploadView(APIView):
     def post(self, request, *args, **kwargs):
-        
+
         try:
             # Upload video to YouTube
-            video_id = self.upload_to_youtube(request.data)
+            upload_to_youtube.delay(request.data)
 
-            if video_id:
-                print('IDD', video_id)
-                return Response({'video_id': video_id}, status=status.HTTP_201_CREATED)
-            else:
-                return Response({'error': 'Failed to upload video'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'message': 'Video upload request received. It will be processed shortly.'}, status=status.HTTP_202_ACCEPTED)
         except Exception as e:
             print(f"Error: {e}")
             return Response({'error': 'Internal server error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
-    def upload_to_youtube(self, video_data):
-         # Get authenticated Youtube service
-        try:
-        # Get authenticated Youtube service
-            youtube = get_authenticated_service("./owner_credentials.json")  # Use owner's credentials
-            
-            # Get video data
-            video_title = video_data.get('title')
-            video_description = video_data.get('description')
-            video_tags = video_data.get('tags')
-            
-            # AWS S3 configuration
-            s3 = boto3.client('s3',
-                            aws_access_key_id=settings.AWS_S3_ACCESS_KEY_ID,
-                            aws_secret_access_key=settings.AWS_S3_SECRET_ACCESS_KEY,
-                            region_name=settings.AWS_S3_REGION_NAME)
-            
-            # Get the video file from S3
-            video_file_key = video_data.get('vid_key')  # Key of the video file in S3 bucket
-            print('file key-------',video_file_key)
-            video_temp_path = os.path.join(BASE_DIR, 'youtubeData', 'temp', 'video.mp4')  # Temporary path to store the downloaded video file
-            s3.download_file(settings.AWS_STORAGE_BUCKET_NAME, video_file_key, video_temp_path)
-            
-            # Prepare the request body for Youtube upload
-            request_body = {
-                'snippet': {
-                    'title': video_title,
-                    'description': video_description,
-                    'tags': video_tags
-                },
-                'status': {
-                    'privacyStatus': 'public',
-                },
-            }
-            
-            # Create media file upload object
-            media_file_upload = MediaFileUpload(video_temp_path, chunksize=-1, resumable=True)
-            
-            # Execute Youtube video insert request
-            videos_insert_response = youtube.videos().insert(
-                part='snippet,status',
-                body=request_body,
-                media_body=media_file_upload
-            ).execute()
-
-            # Get video ID
-            video_id = videos_insert_response['id']
-            print('id',video_id)
-            # Close the media file upload object
-            media_file_upload.stream().close()
-            if video_id:
-                os.remove("./owner_credentials.json")
-                return video_id
-
-        except Exception as e:
-            print(f"Error uploading video: {e}")
-            return None
-
-        finally:
-            # Attempt to delete the temporary file
-            time.sleep(30)  # Adjust the delay as needed
-            try:
-                os.remove(video_temp_path)
-            except Exception as e:
-                print(f"Error deleting temporary file: {e}")
 
 
-
-#<<<<<<<<<<<<<<<<<<<<<<<<------------------DIRECT UPLOAD FROM S3----------------->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-                
-# class VideoUploadView(APIView):
-#     def post(self, request, *args, **kwargs):
-#         video_id = self.upload_to_youtube(request.data)
-#         if video_id:
-#             return Response({'video_id': video_id}, status=status.HTTP_201_CREATED)
-#         else:
-#             return Response({'error': 'Failed to upload video'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-#     def upload_to_youtube(self, video_data):
-#         try:
-#             youtube = get_authenticated_service("./owner_credentials.json")
-#             video_title = video_data.get('title')
-#             video_description = video_data.get('description')
-#             video_tags = video_data.get('tags')
-#             s3 = boto3.client('s3',
-#                               aws_access_key_id=settings.AWS_S3_ACCESS_KEY_ID,
-#                               aws_secret_access_key=settings.AWS_S3_SECRET_ACCESS_KEY,
-#                               region_name=settings.AWS_S3_REGION_NAME)
-            
-#             request_body = {
-#                 'snippet': {
-#                     'title': video_title,
-#                     'description': video_description,
-#                     'tags': video_tags
-#                 },
-#                 'status': {
-#                     'privacyStatus': 'public',
-#                 },
-#             }
-            
-#             # Retrieve video content from S3
-#             video_response = s3.get_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME,
-#                                             Key='posts/Untitled_video_-_Made_with_Clipchamp_2.mp4')
-#             video_content = video_response['Body'].read()  # Read the content of the StreamingBody
-            
-#             # Create a temporary file to store the video content
-#             with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-#                 temp_file.write(video_content)
-#                 temp_file_path = temp_file.name
-            
-#             # Upload video to YouTube
-#             media_file_upload = MediaFileUpload(temp_file_path, mimetype='video/mp4', chunksize=-1, resumable=True)
-#             videos_insert_response = youtube.videos().insert(
-#                 part='snippet,status',
-#                 body=request_body,
-#                 media_body=media_file_upload
-#             ).execute()
-            
-#             # Remove the temporary file
-#             os.remove(temp_file_path)
-            
-#             return videos_insert_response.get('id')
-
-#         except Exception as e:
-#             print(f"Error uploading video: {e}")
-#             return None
