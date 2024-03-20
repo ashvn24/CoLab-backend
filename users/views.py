@@ -1,4 +1,5 @@
 import base64
+from django.utils import timezone
 from django.shortcuts import render
 from rest_framework.generics import GenericAPIView
 
@@ -88,6 +89,22 @@ class Profile(generics.RetrieveAPIView):
         profile_serializer = UserProfileSerializer(profile)
         response_data = profile_serializer
         return Response(response_data.data, status=status.HTTP_200_OK)
+    
+class UserProfileUpdateAPIView(generics.UpdateAPIView):
+    queryset = UserProfile.objects.all()
+    serializer_class = UserProfileSerializer
+    
+
+# class UserProfileUpdateAPIView(generics.UpdateAPIView):
+#     queryset = UserProfile.objects.all()
+#     serializer_class = UserProfileSerializer
+#     permission_classes = [IsAuthenticated]
+#     # Change this to the appropriate field name used for lookup (e.g., 'user_id')
+#     lookup_field = 'pk'
+
+#     def get_queryset(self):
+#         return self.queryset.filter(user=self.request.user)
+
 
 
 class PostCreateView(generics.CreateAPIView):
@@ -137,7 +154,7 @@ class AllPostsListView(generics.ListAPIView):
 
     def get_queryset(self):
         # Return all posts
-        return Post.objects.all().order_by('-created_at')
+        return Post.objects.filter(permission=False).order_by('-created_at')
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -252,15 +269,6 @@ class PostUpdateView(generics.UpdateAPIView):
             raise AuthenticationFailed('Invalid access token')
 
 
-class UserProfileUpdateAPIView(generics.UpdateAPIView):
-    queryset = UserProfile.objects.all()
-    serializer_class = UserProfileSerializer
-    permission_classes = [IsAuthenticated]
-    # Change this to the appropriate field name used for lookup (e.g., 'user_id')
-    lookup_field = 'pk'
-
-    def get_queryset(self):
-        return self.queryset.filter(user=self.request.user)
 
 
 class EditorRequestCreateAPIView(generics.CreateAPIView):
@@ -310,8 +318,13 @@ class AcceptEditorRequestAPIView(generics.RetrieveUpdateAPIView):
 
             # Update the 'accepted' field to True
             instance.accepted = True
+            instance.accepted_time = timezone.now()
             instance.save()
             send_Accept_mail.delay()
+            # Update the related Post's permission field to True
+            instance.post.permission = True
+            instance.post.save()
+
 
             serializer = self.get_serializer(instance)
             return Response(serializer.data, status=status.HTTP_200_OK)

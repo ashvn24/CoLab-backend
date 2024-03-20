@@ -62,6 +62,7 @@ def upload_to_youtube(video_data):
             media_file_upload.stream().close()
             if video_id:
                 os.remove("./owner_credentials.json")
+                # Delete the file from S3 bucket
                 return video_id
 
         except Exception as e:

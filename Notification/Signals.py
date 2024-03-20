@@ -57,7 +57,7 @@ def create_editor_request_accepted_notification(sender, instance, **kwargs):
 def  submitwork_created(sender, instance, created, **kwargs):
     if created:
         reciever = instance.creator
-        message = f'{instance.editor.username} has submitted a request for approval'
+        message = f'{instance.editor.username} has submitted a request for approval of your post {instance.post.title}'
         Notification.objects.create(user=reciever, message=message, timestamp=timezone.now(), work=instance)
         
         channel_layer = get_channel_layer()

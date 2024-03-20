@@ -6,7 +6,7 @@ from django.conf import settings
 from datetime import timedelta
 from django.utils import timezone
 from .models import EditorRequest
-
+import boto3
 
 @shared_task(bind=True)
 def send_mail_func(self):

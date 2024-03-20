@@ -79,6 +79,7 @@ class EditorRequest(models.Model):
     editor = models.ForeignKey(User, related_name='editor_requests', on_delete=models.CASCADE)
     post = models.ForeignKey(Post, related_name='editor_requests', on_delete=models.CASCADE)
     accepted = models.BooleanField(default=False)
+    accepted_time = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
@@ -87,6 +88,7 @@ class EditorRequest(models.Model):
 class SubmitWork(models.Model):
     editor = models.ForeignKey(User, related_name='sender', on_delete=models.CASCADE)
     creator = models.ForeignKey(User, related_name='reciever', on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, blank=True, null=True)
     vidkey = models.CharField(max_length=200)
     desc = models.TextField(max_length=400,blank=True, null=True)
     Quatation = models.IntegerField()

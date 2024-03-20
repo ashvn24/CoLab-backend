@@ -1,12 +1,12 @@
 from rest_framework import serializers
 
-from users.s3 import store_video_in_s3
+# from users.s3 import store_video_in_s3
 from .models import *
 from .social import Google, register_social_user
 from django.contrib.auth import authenticate
 from rest_framework.exceptions import AuthenticationFailed
 from django.conf import settings
-
+from .s3 import store_video_in_s3
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -122,7 +122,7 @@ class SubmitWorkSerializer(serializers.ModelSerializer):
     vidkey = serializers.CharField(read_only=True)
     class Meta:
         model = SubmitWork
-        fields = ['editor', 'creator', 'vidkey', 'desc', 'Quatation']
+        fields = ['editor', 'creator','post', 'vidkey', 'desc', 'Quatation']
 
     def create(self, validated_data):
         # Retrieve the uploaded file

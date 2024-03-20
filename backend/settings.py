@@ -22,7 +22,7 @@ SECRET_KEY = 'django-insecure-hy%36uvhrjg_u22cc)gghd-#++o73x12!8r-g)(b+!0jv5n6t5
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -212,6 +212,10 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'users.task.delete_old_accepted_requests',
         'schedule': timedelta(days=1),  # Run the task every day
     },
+    'delete_old_notification':{
+        'task':'Notification.task.delete_accepted_notification',
+        'schedule':timedelta(days=1)
+    }
 }
 
 #smpt settings
