@@ -12,12 +12,12 @@ import os
 from django.core.asgi import get_asgi_application
 from channels.routing import  ProtocolTypeRouter, URLRouter
 
+application = get_asgi_application()
 from channels.auth import AuthMiddlewareStack
 from chat.channels_Middleware import  JWTwebsocketMiddleware
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
 
-application = get_asgi_application()
 
 from chat.route import  websocket_urlpatterns
 from Notification.route import notification_websocket_urlpatterns
