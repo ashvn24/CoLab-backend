@@ -22,7 +22,7 @@ SECRET_KEY = 'django-insecure-hy%36uvhrjg_u22cc)gghd-#++o73x12!8r-g)(b+!0jv5n6t5
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['www.co-lab.website', 'co-lab.website', '13.50.248.142']
 
 
 # Application definition
@@ -95,15 +95,15 @@ CHANNEL_LAYERS = {
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-DATABASES = {
-'default': {
-'ENGINE': 'django.db.backends.postgresql_psycopg2',
-'NAME': 'myproject',
-'USER': 'myprojectuser',
-'PASSWORD': 'password',
-'HOST': 'localhost',
-'PORT': '',
-}
+DATABASES = {    
+   'default': {        
+       'ENGINE': 'django.db.backends.postgresql_psycopg2',        
+       'NAME': 'djangoprojectdb',        
+       'USER': 'djangoprojectuser',        
+       'PASSWORD': 'mypassword123',        
+       'HOST': 'localhost',        
+       'PORT': '',    
+    }
 }
 
 
@@ -183,7 +183,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'), ]
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
