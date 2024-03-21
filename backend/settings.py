@@ -22,7 +22,7 @@ SECRET_KEY = 'django-insecure-hy%36uvhrjg_u22cc)gghd-#++o73x12!8r-g)(b+!0jv5n6t5
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['www.co-lab.website', 'co-lab.website', '13.50.248.142', 'localhost']
+ALLOWED_HOSTS = ['www.co-lab.website', 'co-lab.website', '*', 'localhost']
 
 
 # Application definition
