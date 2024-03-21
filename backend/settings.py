@@ -20,7 +20,7 @@ environ.Env.read_env(BASE_DIR / '.env')
 SECRET_KEY = 'django-insecure-hy%36uvhrjg_u22cc)gghd-#++o73x12!8r-g)(b+!0jv5n6t5'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -96,14 +96,14 @@ CHANNEL_LAYERS = {
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "colab",
-        "USER": "postgres",
-        "PASSWORD": "0089ashi",
-        "HOST": "localhost",
-        "PORT": "5432",
-    }
+'default': {
+'ENGINE': 'django.db.backends.postgresql_psycopg2',
+'NAME': 'myproject',
+'USER': 'myprojectuser',
+'PASSWORD': 'password',
+'HOST': 'localhost',
+'PORT': '',
+}
 }
 
 
