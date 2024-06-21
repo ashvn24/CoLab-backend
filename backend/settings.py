@@ -20,7 +20,7 @@ environ.Env.read_env(BASE_DIR / '.env')
 SECRET_KEY = 'django-insecure-hy%36uvhrjg_u22cc)gghd-#++o73x12!8r-g)(b+!0jv5n6t5'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['www.co-lab.website', 'co-lab.website', '*', 'localhost']
 
@@ -97,12 +97,12 @@ CHANNEL_LAYERS = {
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'myproject',
-        'USER': 'myprojectuser',
-        'PASSWORD': 'password',
-        'HOST': 'localhost',
-        'PORT': '',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'colab',
+        'USER': 'postgres',
+        'PASSWORD': '0089ashi',
+        'HOST': '127.0.0.1',
+        'PORT': '5432',
     }
 }
 
@@ -227,10 +227,10 @@ EMAIL_USE_TLS = True
 
 DEFAULT_FILE_STORAGE = "storages.backends.s3.S3Storage"
 
-AWS_S3_ACCESS_KEY_ID="AKIA6GBMG5HCKF3P2B5Y"
-AWS_S3_SECRET_ACCESS_KEY="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"
-AWS_STORAGE_BUCKET_NAME="colab-django-s3"
-AWS_S3_REGION_NAME="ap-south-1"
+AWS_S3_ACCESS_KEY_ID="AKIA2UC3FNGCJRIJQ2BA"
+AWS_S3_SECRET_ACCESS_KEY="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"
+AWS_STORAGE_BUCKET_NAME="colabs3buck"
+AWS_S3_REGION_NAME="eu-north-1"
 
 
 GOOGLE_CLIENT_ID = "992019703198-773u0jasljbf9eao5n8qf5903uquokmp.apps.googleusercontent.com"

@@ -29,7 +29,6 @@ def upload_to_youtube(video_data):
             
             # Get the video file from S3
             video_file_key = video_data.get('vid_key')  # Key of the video file in S3 bucket
-            print('file key-------',video_file_key)
             video_temp_path = os.path.join(BASE_DIR, 'youtubeData', 'temp', 'video.mp4')  # Temporary path to store the downloaded video file
             s3.download_file(settings.AWS_STORAGE_BUCKET_NAME, video_file_key, video_temp_path)
             
