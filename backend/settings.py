@@ -218,10 +218,10 @@ CELERY_BEAT_SCHEDULE = {
 }
 
 #smpt settings
-EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
-EMAIL_HOST_USER = 'a8e1606228d505'
-EMAIL_HOST_PASSWORD = '6cbcf337a7e4f2'
-EMAIL_PORT = '2525'
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_HOST_USER = "ashwinvk77@gmail.com"
+EMAIL_HOST_PASSWORD = "ktsg khti mimn zphi"
+EMAIL_PORT = '587'
 EMAIL_USE_TLS = True
 
 
