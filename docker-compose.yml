@@ -1,0 +1,66 @@
+version: "3.8"
+
+services:
+  django:
+    build: .
+    container_name: django-rest
+    command: >
+      bash -c "python manage.py makemigrations &&
+               python manage.py migrate &&
+               python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/usr/src/app/
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=1
+      - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
+      - CELERY_BROKER=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0
+    depends_on:
+      - pgdbcolab
+      - redis
+
+  celery:
+    build: .
+    command: celery -A backend.celery worker --pool=solo -l INFO
+    volumes:
+      - .:/usr/src/app
+    environment:
+      - DEBUG=1
+      - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
+      - CELERY_BROKER=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0
+    depends_on:
+      - django
+      - redis
+
+  celery-beat:
+    build: .
+    command: celery -A backend beat -l INFO
+    volumes:
+      - .:/usr/src/app
+    environment:
+      - DEBUG=1
+      - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
+      - CELERY_BROKER=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0
+    depends_on:
+      - django
+      - redis
+
+  pgdbcolab:
+    image: postgres
+    container_name: pgdbcolabs
+    environment:
+      - POSTGRES_DB=colab
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=0089ashi
+    volumes:
+      - pgdata:/var/lib/postgresql/data/
+
+  redis:
+    image: "redis:alpine"
+
+volumes:
+  pgdata:

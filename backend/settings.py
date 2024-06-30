@@ -98,14 +98,13 @@ CHANNEL_LAYERS = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'colab',
-        'USER': 'postgres',
-        'PASSWORD': '0089ashi',
-        'HOST': '127.0.0.1',
-        'PORT': '5432',
+        'NAME': os.getenv('POSTGRES_DB', 'colab'),
+        'USER': os.getenv('POSTGRES_USER', 'postgres'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD', '0089ashi'),
+        'HOST': os.getenv('POSTGRES_HOST', 'pgdbcolab'),
+        'PORT': os.getenv('POSTGRES_PORT', '5432'),
     }
 }
-
 AUTH_USER_MODEL="users.User"
 
 
@@ -194,7 +193,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 #celery settings
 
-CELERY_BROKER_URL= 'redis://127.0.0.1:6379'
+CELERY_BROKER_URL= 'redis://redis:6379/0'   
 CELERY_ACCEPT_CONTENT= ['application/json']
 CELERY_RESULT_SERIALIZER= 'json'
 CELERY_TASK_SERIALIZER=  'json' 
