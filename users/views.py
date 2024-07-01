@@ -16,8 +16,12 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 import jwt
 from django.conf import settings
 from django.shortcuts import get_object_or_404
+from django.conf import settings
+from django.core.cache.backends.base import DEFAULT_TIMEOUT
+from django.views.decorators.cache import cache_page
+from django.core.cache import cache
 
-
+CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
 # Create your views here.
 
 
@@ -177,7 +181,7 @@ class GetPostDetail(generics.RetrieveAPIView):
             serializer = PostSerializer(post)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
-        # Check if the user is an editor and if the request is accepted
+        # Check if the user is an editor and if the request is accepted or not
         user = request.user
         if EditorRequest.objects.filter(editor=user, post=post, accepted=True).exists():
             editor_request = EditorRequest.objects.get(editor=user, post=post, accepted=True)
@@ -219,13 +223,26 @@ class GetMyPost(generics.RetrieveAPIView):
             payload = jwt.decode(
                 token, settings.SECRET_KEY, algorithms=['HS256'])
             user_id = payload['user_id']
-            post = Post.objects.filter(user=user_id).order_by("-created_at")
-            serializer = self.get_serializer(post, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            cache_key = f'user_posts_{user_id}'
+            response_data = cache.get(cache_key)
 
-        except Post.DoesNotExist:
-            return Response({'message': 'No posts found'}, status=status.HTTP_404_NOT_FOUND)
+            if response_data is not None:
+                return Response(response_data, status=status.HTTP_200_OK)
 
+            posts = Post.objects.filter(user=user_id).order_by("-created_at")
+            if not posts.exists():
+                return Response({'message': 'No posts found'}, status=status.HTTP_404_NOT_FOUND)
+
+            serializer = self.get_serializer(posts, many=True)
+            response_data = serializer.data
+
+            cache.set(cache_key, response_data, timeout=3600)  # Cache the response for 1 hour
+            return Response(response_data, status=status.HTTP_200_OK)
+
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed('Access token expired')
+        except jwt.InvalidTokenError:
+            raise AuthenticationFailed('Invalid token')
 
 class PostUpdateView(generics.UpdateAPIView):
     queryset = Post.objects.all()
